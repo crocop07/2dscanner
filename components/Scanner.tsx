@@ -17,18 +17,31 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
       const html5Qrcode = new Html5Qrcode("reader");
       scannerRef.current = html5Qrcode;
 
-      await html5Qrcode.start(
-        { facingMode: "environment" }, // Prefers rear camera on mobile
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
+      const config = {
+        fps: 15, // Smooth frame rate for mobile & low-power Windows CPUs
+        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+          // Dynamic responsive scan area based on screen size
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+          const size = Math.floor(minEdge * 0.7);
+          return { width: size, height: size };
         },
+        formatsToSupport: [Html5QrcodeSupportedFormats.DATA_MATRIX], // Strict focus on Data Matrix
+        videoConstraints: {
+          facingMode: { ideal: "environment" },
+          width: { min: 640, ideal: 1280, max: 1920 }, // Prevents over-stretching mobile CPU
+          height: { min: 480, ideal: 720, max: 1080 },
+        },
+      };
+
+      await html5Qrcode.start(
+        { facingMode: "environment" },
+        config,
         (decodedText) => {
           onScanSuccess(decodedText);
-          stopScanner(); // Stop scanning once a code is read
+          stopScanner();
         },
-        (errorMessage) => {
-          // Frame match errors are normal while seeking a barcode
+        () => {
+          // Frame seeking errors ignored intentionally
         }
       );
       setIsScanning(true);
@@ -61,19 +74,19 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
     <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto">
       <div
         id="reader"
-        className="w-full bg-black rounded-lg overflow-hidden border border-gray-300 min-h-[250px]"
+        className="w-full bg-black rounded-lg overflow-hidden border border-gray-300 min-h-[280px]"
       />
       {!isScanning ? (
         <button
           onClick={startScanner}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded transition-colors"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm"
         >
           Start Camera Scanner
         </button>
       ) : (
         <button
           onClick={stopScanner}
-          className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 px-4 rounded transition-colors"
+          className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm"
         >
           Stop Camera
         </button>
