@@ -22,7 +22,6 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
-          formatsToSupport: [Html5QrcodeSupportedFormats.DATA_MATRIX], // 2D Data Matrix
         },
         (decodedText) => {
           onScanSuccess(decodedText);
