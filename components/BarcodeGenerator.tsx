@@ -18,6 +18,9 @@ export default function BarcodeGenerator({ payload }: BarcodeGeneratorProps) {
           bcid: "datamatrix", // 2D Data Matrix format
           text: payload,      // Raw payload string
           scale: 4,           // High DPI crispness
+          paddingwidth: 10,     // Left & right quiet zone (in points)
+          paddingheight: 10,    // Top & bottom quiet zone (in points)
+          
         });
       } catch (err) {
         console.error("Barcode rendering error:", err);
