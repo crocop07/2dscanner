@@ -14,23 +14,38 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
 
   const startScanner = async () => {
     try {
+
+      // Clean up previous streams/instances
+      if (scannerRef.current?.isScanning) {
+        await scannerRef.current.stop();
+      }
+
+      // Clear DOM container to prevent stacked video feeds
+      const container = document.getElementById("reader");
+      if (container) {
+        container.innerHTML = "";
+      }
+
       const html5Qrcode = new Html5Qrcode("reader");
       scannerRef.current = html5Qrcode;
 
       const config = {
-        fps: 15, // Smooth frame rate for mobile & low-power Windows CPUs
-        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-          // Dynamic responsive scan area based on screen size
-          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-          const size = Math.floor(minEdge * 0.7);
-          return { width: size, height: size };
-        },
+        fps: 10, // Smooth frame rate for mobile & low-power Windows CPUs
+        
         formatsToSupport: [Html5QrcodeSupportedFormats.DATA_MATRIX], // Strict focus on Data Matrix
-        videoConstraints: {
-          facingMode: { ideal: "environment" },
-          width: { min: 640, ideal: 1280, max: 1920 }, // Prevents over-stretching mobile CPU
-          height: { min: 480, ideal: 720, max: 1080 },
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true, // Native Shape Detection API (Lightning fast on Chrome/Android)
         },
+      };
+
+    const cameraConstraints: MediaTrackConstraints = {
+        facingMode: "environment",
+        width: { min: 1280, ideal: 1920 }, // added higher res, CRITICAL for scanning codes
+        height: { min: 720, ideal: 1080 },
+        // Advanced constraints for sharp macro focus on physical cards
+        advanced: [
+          { focusMode: "continuous" } as MediaTrackConstraintSet,
+        ],
       };
 
       await html5Qrcode.start(
@@ -51,7 +66,7 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
   };
 
   const stopScanner = async () => {
-    if (scannerRef.current && isScanning) {
+    if (scannerRef.current && scannerRef.current.isScanning) {
       try {
         await scannerRef.current.stop();
         scannerRef.current = null;
@@ -64,7 +79,7 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current) {
+      if (scannerRef.current?.isScanning) {
         scannerRef.current.stop().catch(() => {});
       }
     };
@@ -72,10 +87,31 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto">
-      <div
-        id="reader"
-        className="w-full bg-black rounded-lg overflow-hidden border border-gray-300 min-h-[280px]"
-      />
+      {/* Relative container holding both video feed and visual overlay */}
+      <div className="relative w-full bg-black rounded-lg overflow-hidden border border-gray-300 min-h-[280px]">
+        {/* Video stream container */}
+        <div id="reader" className="w-full h-full" />
+
+        {/* Visual Target Overlay (Only visible when actively scanning) */}
+        {isScanning && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            {/* Guide Box Frame */}
+            <div className="relative w-56 h-56 border-2 border-emerald-500/60 rounded-lg bg-emerald-500/5">
+              {/* Corner Indicators */}
+              <div className="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-emerald-500" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-emerald-500" />
+              <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-emerald-500" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-emerald-500" />
+
+              {/* Text Hint */}
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-white/80 bg-black/60 px-2.5 py-1 rounded-full whitespace-nowrap">
+                Position Data Matrix inside box
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {!isScanning ? (
         <button
           onClick={startScanner}

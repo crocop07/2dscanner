@@ -1,11 +1,14 @@
 import type { NextConfig } from 'next';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
   output: 'export',
   images: {
     unoptimized: true, // Required for static exports on GitHub Pages
   },
-  basePath: '/2dscanner', // ONLY uncomment if hosted at username.github.io/2dscanner/ without a custom domain
+  // Only use the subpath when building for production/GitHub Pages
+  basePath: isProd ? '/2dscanner' : '',
 };
 
 export default nextConfig;

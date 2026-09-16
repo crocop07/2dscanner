@@ -60,22 +60,145 @@ export default function Home() {
           />
 
           {/* Parsed Fields Summary */}
-          {inputPayload && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm">
-              <div>
-                <span className="block text-xs text-gray-500 font-medium">Format / Class</span>
-                <span className="font-mono text-gray-800">{parsedData.formatClass}</span>
-              </div>
-              <div>
-                <span className="block text-xs text-gray-500 font-medium">Postcode / DPS</span>
-                <span className="font-mono text-gray-800">{parsedData.postcodeDPS}</span>
-              </div>
-              <div>
-                <span className="block text-xs text-gray-500 font-medium">Item Tracking ID</span>
-                <span className="font-mono text-gray-800">{parsedData.itemId}</span>
-              </div>
+        {inputPayload && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm">
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Country / Version</span>
+              <span className="font-mono text-gray-800">
+                {parsedData.upuCountryId.trim() || "N/A"} {parsedData.informationTypeId.trim()} {parsedData.versionId.trim() || "N/A"}
+              </span>
             </div>
-          )}
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium font-bold text-blue-600">
+                MCSL / DOSL Index ID
+              </span>
+              <span className="font-mono text-gray-900 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 block">
+                {parsedData.indexIdMcsl.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Barcode ID </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.barcodeId.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Sending OBIID </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.sendingObiId.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Sending Location ID </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.sendingFunctionalLocationId.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Priority Spec </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.prioritySpecification.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Date of Production </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.dateOfProduction.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Processing Function </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.processingFunction.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Receiving Office 1 Name</span>
+              <span className="font-mono text-gray-800">
+                {parsedData.receivingOffice1.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Receiving Office 2 Postcode</span>
+              <span className="font-mono text-gray-800">
+                {parsedData.receivingOffice2.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Hub Name </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.hubName.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Lane Code </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.laneCode.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Tracked Code </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.trackedCode.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Hub Code</span>
+              <span className="font-mono text-gray-800">
+                {parsedData.hubCode.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Local Seg Code </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.localSegCode.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Content </span>
+              <span className="font-mono text-gray-800">
+                {parsedData.content.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Route 1</span>
+              <span className="font-mono text-gray-800">
+                {parsedData.route1.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Dispatching Office</span>
+              <span className="font-mono text-gray-800">
+                {parsedData.dispatchingOffice.trim() || "N/A"}
+              </span>
+            </div>
+
+            <div>
+              <span className="block text-xs text-gray-500 font-medium">Reorder code</span>
+              <span className="font-mono text-gray-800">
+                {parsedData.reorderBarcodeCode1D.trim() || "N/A"}
+              </span>
+            </div>
+
+          </div>
+        )}
         </section>
 
         {/* Barcode Generator & Download Section */}
