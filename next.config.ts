@@ -1,14 +1,14 @@
 import type { NextConfig } from 'next';
 
-const isProd = process.env.NODE_ENV === 'production';
-
 const nextConfig: NextConfig = {
   output: 'export',
   images: {
-    unoptimized: true, // Required for static exports on GitHub Pages
+    unoptimized: true,
   },
-  // Only use the subpath when building for production/GitHub Pages
-  basePath: isProd ? '/2dscanner' : '',
+  // Ensure the subpath starts with a '/' and matches your GitHub repo name exactly
+  basePath: '/2dscanner',
+  assetPrefix: '/2dscanner/',
+  trailingSlash: true, // Guarantees clean static directory paths for GitHub Pages
 };
 
 export default nextConfig;
