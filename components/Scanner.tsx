@@ -49,8 +49,8 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
       };
 
       await html5Qrcode.start(
-        { facingMode: "environment" },
-        config,
+       cameraConstraints,
+       config,
         (decodedText) => {
           onScanSuccess(decodedText);
           stopScanner();
