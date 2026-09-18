@@ -29,23 +29,22 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
       const html5Qrcode = new Html5Qrcode("reader");
       scannerRef.current = html5Qrcode;
 
-      const config = {
-        fps: 10, // Smooth frame rate for mobile & low-power Windows CPUs
-        
-        formatsToSupport: [Html5QrcodeSupportedFormats.DATA_MATRIX], // Strict focus on Data Matrix
+    const config = {
+        fps: 10,
+        formatsToSupport: [Html5QrcodeSupportedFormats.DATA_MATRIX],
         experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true, // Native Shape Detection API (Lightning fast on Chrome/Android)
-        },
-        videoConstraints: {
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet],
+          useBarCodeDetectorIfSupported: true,
         },
       };
 
+      const cameraConstraints: MediaTrackConstraints = {
+          facingMode: "environment",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        };
+
       await html5Qrcode.start(
-      { facingMode: "environment" }, // Exactly 1 key here!
+        cameraConstraints,
         config,
         (decodedText) => {
           onScanSuccess(decodedText);
