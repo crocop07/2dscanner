@@ -88,7 +88,7 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
       {/* Relative container holding both video feed and visual overlay */}
       <div className="relative w-full bg-black rounded-lg overflow-hidden border border-gray-300 min-h-[280px]">
         {/* Video stream container */}
-        <div id="reader" className="w-full h-full [&_video]:filter [&_video]:grayscale [&_video]:contrast-200 [&_video]:brightness-90"  />
+        <div id="reader" className="w-full h-full" />
 
         {/* Visual Target Overlay (Only visible when actively scanning) */}
         {isScanning && (
