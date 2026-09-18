@@ -36,21 +36,17 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
         experimentalFeatures: {
           useBarCodeDetectorIfSupported: true, // Native Shape Detection API (Lightning fast on Chrome/Android)
         },
-      };
-
-    const cameraConstraints: MediaTrackConstraints = {
-        facingMode: "environment",
-        width: { min: 1280, ideal: 1920 }, // added higher res, CRITICAL for scanning codes
-        height: { min: 720, ideal: 1080 },
-        // Advanced constraints for sharp macro focus on physical cards
-        advanced: [
-          { focusMode: "continuous" } as MediaTrackConstraintSet,
-        ],
+        videoConstraints: {
+          facingMode: "environment",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet],
+        },
       };
 
       await html5Qrcode.start(
-       cameraConstraints,
-       config,
+      { facingMode: "environment" }, // Exactly 1 key here!
+        config,
         (decodedText) => {
           onScanSuccess(decodedText);
           stopScanner();
@@ -62,6 +58,8 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
       setIsScanning(true);
     } catch (err) {
       console.error("Failed to start camera scanner:", err);
+      alert("Could not start camera. Please check permissions.");
+      setIsScanning(false);
     }
   };
 
