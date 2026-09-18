@@ -36,15 +36,9 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
           useBarCodeDetectorIfSupported: true,
         },
       };
-
-      const cameraConstraints: MediaTrackConstraints = {
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        };
-
+      
       await html5Qrcode.start(
-        cameraConstraints,
+        { facingMode: "environment" },
         config,
         (decodedText) => {
           onScanSuccess(decodedText);
