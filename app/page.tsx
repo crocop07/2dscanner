@@ -9,6 +9,8 @@ import { generateDummyPayloadWithMcsl } from "@/lib/generator";
 
 export default function Home() {
   const [inputPayload, setInputPayload] = useState("");
+  const [showScanner, setShowScanner] = useState(true);
+  const [showCodes, setShowCodes] = useState(true);
   
   // 1. Parse raw payload string
   const parsedData = parse2DCodePayload(inputPayload);
@@ -26,14 +28,31 @@ export default function Home() {
             2D Code Auditor & Generator
           </h1>
           <p className="text-sm text-gray-600">
-            Scan or paste a Data Matrix payload to verify string length and extract crisp PNG barcodes.
+            Scan or paste a Data Matrix payload to verify string length and extract PNG barcodes.
           </p>
         </header>
 
         {/* Camera Scanner Component */}
-        <section className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+     <section className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-800">1. Live Camera Scanner</h2>
-          <Scanner onScanSuccess={(scannedText) => setInputPayload(scannedText)} />
+          <button
+            onClick={() => setShowScanner((s) => !s)}
+            className="text-xs px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-100"
+          >
+            {showScanner ? "Hide" : "Show"}
+          </button>
+        </div>
+        {showScanner && (
+          <Scanner 
+          onScanSuccess={(scannedText) => { 
+              setInputPayload(scannedText); 
+              setShowScanner(false);
+
+          }} 
+            />
+        )}
+        
         </section>
 
         {/* Manual Input & Verification Section */}
@@ -43,7 +62,8 @@ export default function Home() {
             
             {/* Real-time Status Badge */}
             {inputPayload && (
-              <span
+             <div className="flex items-center gap-2">
+             <span
                 className={`px-3 py-1 rounded-full text-xs font-bold ${
                   parsedData.isValid
                     ? "bg-green-100 text-green-800 border border-green-200"
@@ -51,9 +71,17 @@ export default function Home() {
                 }`}
               >
                 {parsedData.isValid
-                  ? "VALID Label"
-                  : `INVALID Label)`}
+                  ? "VALID LABEL"
+                  : "INVALID LABEL"}
               </span>
+              
+              <button 
+              onClick={() => setInputPayload("")}
+              className="text-xs px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-100"
+              >Clear
+
+              </button>
+            </div>
             )}
           </div>
 
