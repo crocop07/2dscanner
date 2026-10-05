@@ -4,6 +4,8 @@ export interface Parsed2DData {
     raw: string;
     length: number;
     isValid220: boolean;
+    isValidMcslDosl: boolean;
+    isValid: boolean;
     upuCountryId: string;
     informationTypeId: string;
     versionId: string;
@@ -39,6 +41,11 @@ export function validate2DCodeLength(payload: string): boolean {
     return payload.length === 220;
 }
 
+/**Checks the MCSL/DOSL identifier sits a characters 45-57 and matches the expected format (MCSL + 9 Digits) */
+export function validateMcslDosl(payload: string): boolean {
+    const field = payload.substring(45, 58);
+    return /^(MCSL|DOSL)\d{9}$/.test(field);
+}
 /**
  * Extracts distinct payload chunks using character offsets.
  * or returns N/A
@@ -49,12 +56,17 @@ export function parse2DCodePayload(payload: string): Parsed2DData {
     const normalizedPayload = payload.replace(/\./g, " ");
 
     const length = payload.length;
-    const isValid220 = length === 220;
+    const isValid220 = validate2DCodeLength(payload);
+    const isValidMcslDosl = validateMcslDosl(normalizedPayload);
+    const isValid = isValid220 && isValidMcslDosl;
+
 
     return {
         raw: normalizedPayload,
         length,
         isValid220,
+        isValidMcslDosl,
+        isValid,
         upuCountryId: normalizedPayload.substring(0, 4),
         informationTypeId: normalizedPayload.substring(4, 5),
         versionId: normalizedPayload.substring(5, 6),
