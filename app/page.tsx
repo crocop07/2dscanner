@@ -10,7 +10,13 @@ import { generateDummyPayloadWithMcsl } from "@/lib/generator";
 export default function Home() {
   const [inputPayload, setInputPayload] = useState("");
   const [showScanner, setShowScanner] = useState(true);
-  const [showCodes, setShowCodes] = useState(true);
+  //const [showCodes, setShowCodes] = useState(true);
+  const [idType, setIDType] = useState<"MCSL" | "DOSL">("MCSL");
+  const [digits, setDigits] = useState("");
+
+  const digitsValid = /^\d{9}$/.test(digits);
+  const typedLabel = digitsValid ? generateDummyPayloadWithMcsl(idType + digits) : null;
+  
   
   // 1. Parse raw payload string
   const parsedData = parse2DCodePayload(inputPayload);
@@ -31,6 +37,51 @@ export default function Home() {
             Scan or paste a Data Matrix payload to verify string length and extract PNG barcodes.
           </p>
         </header>
+
+      {/* Quick Create from MCSL / DOSL */}
+<section className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+  <h2 className="text-lg font-semibold text-gray-800">Quick Create from MCSL / DOSL</h2>
+
+  <div className="flex gap-2">
+    <select
+      value={idType}
+      onChange={(e) => setIDType(e.target.value as "MCSL" | "DOSL")}
+      className="p-2 border border-gray-300 rounded-lg bg-gray-50 font-mono"
+    >
+      <option>MCSL</option>
+      <option>DOSL</option>
+    </select>
+    <input
+      value={digits}
+      inputMode="numeric"
+      maxLength={9}
+      placeholder="9 digits"
+      onChange={(e) => setDigits(e.target.value.replace(/\D/g, "").slice(0, 9))}
+      className="flex-1 p-2 font-mono border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+    />
+
+            {digits.length > 0 &&(
+              <button 
+              onClick={() => setDigits("")
+              }
+              className="text-xs px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-100"
+              >Clear
+
+              </button>
+            )}
+  </div>
+
+  {digits && !digitsValid && (
+    <p className="text-xs text-red-700">Enter exactly 9 digits</p>
+  )}
+
+  {typedLabel && (
+    <div className="flex flex-col items-center gap-3 p-4 bg-blue-50/50 rounded-lg border border-blue-200 text-center">
+      <span className="text-2xl font-mono font-bold">{idType + digits}</span>
+      <BarcodeGenerator payload={typedLabel} />
+    </div>
+  )}
+</section>
 
         {/* Camera Scanner Component */}
      <section className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
@@ -246,6 +297,7 @@ export default function Home() {
             </div>
           )}
         </section>
+
 
         {/* Barcode Generator & Download Section - Side by Side */}
         {inputPayload && (
