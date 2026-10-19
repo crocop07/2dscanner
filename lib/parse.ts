@@ -34,17 +34,17 @@ export interface Parsed2DData {
 }
 
 /**
- * Validates whether a scanned string meets the standard 220-character requirement.
+ * Validates whether a scanned string meets the 220-character requirement.
  * @param payload - The complete text string returned by the scanner, not the 2D code's internal payload.
  */
 export function validate2DCodeLength(payload: string): boolean {
-    return payload.length === 220;
+    return payload.length === 220; // '===' means exactly equal to, returns true or false
 }
 
 /**Checks the MCSL/DOSL identifier sits a characters 45-57 and matches the expected format (MCSL + 9 Digits) */
 export function validateMcslDosl(payload: string): boolean {
-    const field = payload.substring(45, 58);
-    return /^(MCSL|DOSL)\d{9}$/.test(field);
+    const field = payload.substring(45, 58);  // selects 46th character and 12 more to get MSCL
+    return /^(MCSL|DOSL)\d{9}$/.test(field);  //the regex means ^ = start text. (MSCL|DOSL) = either word. \d{9} = exactly 9 digits. $ = end of text. function returns true or false
 }
 /**
  * Extracts distinct payload chunks using character offsets.

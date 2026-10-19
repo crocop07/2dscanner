@@ -1,21 +1,94 @@
 // app/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { parse2DCodePayload } from "@/lib/parse";
 import BarcodeGenerator from "@/components/BarcodeGenerator";
 import Scanner from "@/components/Scanner";
 import { generateDummyPayloadWithMcsl } from "@/lib/generator";
 
+interface ScanEntry {
+  raw: string;
+  mailcentre: string;
+  mcsl: string;
+  postcodes: string;
+  isValid: boolean;
+  id: string;
+}
+
 export default function Home() {
   const [inputPayload, setInputPayload] = useState("");
   const [showScanner, setShowScanner] = useState(true);
-  //const [showCodes, setShowCodes] = useState(true);
+
   const [idType, setIDType] = useState<"MCSL" | "DOSL">("MCSL");
   const [digits, setDigits] = useState("");
+  const [toast, setToast] = useState<{ type: "ok" | "error" | "dup"; message: string } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [scans, setScans] = useState<ScanEntry[]>([]);
+  // const seen = useRef(new Set<string>()); delete if working
 
   const digitsValid = /^\d{9}$/.test(digits);
   const typedLabel = digitsValid ? generateDummyPayloadWithMcsl(idType + digits) : null;
+
+  const [loaded, setLoaded] = useState(false);
+
+  // Load saved scans once, when the page first opens
+useEffect(() => {
+  try {
+    const saved = sessionStorage.getItem("scans");
+    if (saved) {
+      const parsed: ScanEntry[] = JSON.parse(saved);
+      setScans(parsed);
+      // parsed.forEach((s) => seen.current.add(s.raw)); delete if working
+    }
+  } catch {
+    // ignore corrupted or blocked storage
+  }
+  setLoaded(true);
+}, []);
+
+// Save whenever the list changes (but only after the load has happened)
+useEffect(() => {
+  if (!loaded) return;
+  try {
+    sessionStorage.setItem("scans", JSON.stringify(scans));
+  } catch {
+    // ignore if storage is full or blocked
+  }
+}, [scans, loaded]);
+
+  function showToast(type: "ok" | "error" | "dup", message: string) {
+  if (toastTimer.current) clearTimeout(toastTimer.current);
+  setToast({ type, message });
+  toastTimer.current = setTimeout(() => setToast(null), 2500);
+  if (type !== "ok") navigator.vibrate?.(200); // does nothing on desktop
+}
+
+function handleScan(scannedText: string) {
+  setInputPayload(scannedText);
+
+  const parsed = parse2DCodePayload(scannedText);
+
+  setScans((prev) => [
+    {
+      id: crypto.randomUUID(),
+      raw: scannedText,
+      mailcentre: parsed.receivingOffice1.trim(),
+      mcsl: parsed.indexIdMcsl.trim(),
+      postcodes: parsed.receivingOffice2.trim(),
+      isValid: parsed.isValid,
+    },
+    ...prev,
+  ]);
+
+  if (!parsed.isValid220) {
+    showToast("error", `Wrong length: ${parsed.length} characters (expected 220)`);
+  } else if (!parsed.isValidMcslDosl) {
+    showToast("error", "No valid MCSL/DOSL found");
+  } else {
+    showToast("ok", `Scanned ${parsed.indexIdMcsl.trim()}`);
+  }
+}
   
   
   // 1. Parse raw payload string
@@ -26,6 +99,21 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 p-4 md:p-8">
+
+    {toast && (
+  <div
+    className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-sm font-semibold ${
+      toast.type === "ok"
+        ? "bg-green-600 text-white"
+        : toast.type === "dup"
+        ? "bg-amber-500 text-white"
+        : "bg-red-600 text-white"
+    }`}
+  >
+    {toast.message}
+  </div>
+)}
+
       <div className="max-w-3xl mx-auto space-y-8">
         
         {/* Header Section */}
@@ -94,17 +182,64 @@ export default function Home() {
             {showScanner ? "Hide" : "Show"}
           </button>
         </div>
-        {showScanner && (
-          <Scanner 
-          onScanSuccess={(scannedText) => { 
-              setInputPayload(scannedText); 
-              setShowScanner(false);
-
-          }} 
-            />
-        )}
+        {showScanner && <Scanner onScanSuccess={handleScan} />}
         
         </section>
+
+        {/* Session list */}
+<section className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+  <div className="flex items-center justify-between">
+    <h2 className="text-lg font-semibold text-gray-800">
+      Scanned this session ({scans.length})
+    </h2>
+    {scans.length > 0 && (
+      <button
+        onClick={() => {
+          setScans([]);
+         // seen.current.clear(); delete if working
+        }}
+        className="text-xs px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-100"
+      >
+        Clear list
+      </button>
+    )}
+  </div>
+
+  {scans.length === 0 ? (
+    <p className="text-sm text-gray-500">Nothing scanned yet.</p>
+  ) : (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-xs text-gray-500">
+            <th className="py-1 pr-3">Mailcentre</th>
+            <th className="py-1 pr-3">MCSL/DOSL</th>
+            <th className="py-1 pr-3">Postcodes</th>
+            <th className="py-1">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {scans.map((s) => (
+            <tr key={s.id} className="border-t border-gray-100">
+              <td className="py-2 pr-3">{s.mailcentre || "N/A"}</td>
+              <td className="py-2 pr-3 font-mono">{s.mcsl || "N/A"}</td>
+              <td className="py-2 pr-3 font-mono">{s.postcodes || "N/A"}</td>
+              <td className="py-2">
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                    s.isValid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {s.isValid ? "VALID" : "INVALID"}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</section>
 
         {/* Manual Input & Verification Section */}
         <section className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">

@@ -12,6 +12,14 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const onScanRef =useRef(onScanSuccess);
+ // const lastValue = useRef("");
+  //const lastSeen = useRef(0);
+  const lastSeenMap = useRef(new Map<string, number>());
+
+  useEffect(() => {
+    onScanRef.current = onScanSuccess;
+  }, [onScanSuccess]);
 
   const stopScanner = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -19,6 +27,8 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    //lastValue.current = "";  delete if working
+    lastSeenMap.current.clear();
     setIsScanning(false);
   };
 
@@ -35,9 +45,14 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
       });
       streamRef.current = stream;
 
+      const track = stream.getVideoTracks()[0];
+      track.addEventListener("ended", () => console.log("camera track ENDED"));
+      track.addEventListener("mute", () => console.log("camera track MUTED"));
+
       const video = videoRef.current!;
       video.srcObject = stream;
       await video.play();
+      video.addEventListener("pause", () => console.log("video PAUSED"));
       setIsScanning(true);
 
       let busy = false;
@@ -47,11 +62,13 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
           busy = true;
           try {
             const codes = await detector.detect(video);
-            if (codes.length > 0) {
-              onScanSuccess(codes[0].rawValue);
-              stopScanner();
-              return;
-            }
+            const now = Date.now();
+          for (const code of codes) {
+  const value = code.rawValue;
+  const last = lastSeenMap.current.get(value) ?? 0;
+  lastSeenMap.current.set(value, now);
+  if (now - last > 2000) onScanRef.current(value);
+          }
           } catch {
             // ignore frames that fail to decode
           }
