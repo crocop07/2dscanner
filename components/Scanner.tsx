@@ -16,6 +16,7 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
  // const lastValue = useRef("");
   //const lastSeen = useRef(0);
   const lastSeenMap = useRef(new Map<string, number>());
+  const cropRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     onScanRef.current = onScanSuccess;
@@ -61,7 +62,30 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
         if (!busy) {
           busy = true;
           try {
-            const codes = await detector.detect(video);
+           const vw = video.videoWidth;
+            const vh = video.videoHeight;
+            const boxW = video.clientWidth;
+            const boxH = video.clientHeight;
+
+            if (!vw || !vh || !boxW || !boxH) throw new Error("video not ready");
+
+            // object-cover scales the video to fill the box, then crops the overflow
+            const scale = Math.max(boxW / vw, boxH / vh);
+            const sw = boxW / scale; // visible width in video pixels
+            const sh = boxH / scale; // visible height in video pixels
+            const sx = (vw - sw) / 2;
+            const sy = (vh - sh) / 2;
+
+            const canvas = (cropRef.current ??= document.createElement("canvas"));
+            canvas.width = sw;
+            canvas.height = sh;
+            canvas.getContext("2d")!.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+
+            const codes = await detector.detect(canvas); 
+
+
+
+
             const now = Date.now();
           for (const code of codes) {
   const value = code.rawValue;

@@ -61,7 +61,11 @@ useEffect(() => {
   if (toastTimer.current) clearTimeout(toastTimer.current);
   setToast({ type, message });
   toastTimer.current = setTimeout(() => setToast(null), 2500);
-  if (type !== "ok") navigator.vibrate?.(200); // does nothing on desktop
+  if (type === "ok") {  //IF scan is ok vibrate
+  navigator.vibrate?.(60); // short buzz for a good scan
+} else {
+  navigator.vibrate?.([150, 80, 150]); // double buzz for errors
+}
 }
 
 function handleScan(scannedText: string) {
