@@ -90,7 +90,7 @@ export default function Scanner({ onScanSuccess }: ScannerProps) {
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto">
-      <div className="relative w-full bg-black rounded-lg overflow-hidden border border-gray-300 h-44">
+      <div className="relative w-full bg-black rounded-lg overflow-hidden border border-gray-300 h-64">
         <video
           ref={videoRef}
           playsInline
